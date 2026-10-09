@@ -1,0 +1,27 @@
+{
+  "name": "kumparan-qa-playwright",
+  "version": "1.0.0",
+  "description": "kumparan QA skill test: web (desktop+mobile), Playwright Agent and GraphQL API tests",
+  "scripts": {
+    "test": "playwright test --project=desktop --project=mobile --project=agent-desktop --project=agent-mobile --project=api",
+    "test:web": "playwright test --project=desktop --project=mobile",
+    "test:desktop": "playwright test --project=desktop",
+    "test:mobile": "playwright test --project=mobile",
+    "test:agent": "playwright test --project=agent-desktop --project=agent-mobile",
+    "test:api": "playwright test --project=api",
+    "test:captcha": "playwright test --project=captcha --workers=1",
+    "auth:save": "playwright test --project=save-session",
+    "report": "playwright show-report",
+    "typecheck": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.4",
+    "dotenv": "^18.0.6",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,183 @@
+TC ID,Scenario,Test Type,Priority,Auth State,Steps,Expected Result,Automation,Status,Defect ID
+AUTH-001,Login with valid email and password,Happy Path,P1,Logged in,"1. Open https://kumparan.com
+2. Click 'Masuk'
+3. Choose login with email
+4. Enter valid email and password
+5. Submit","Login dialog closes, user stays on homepage, header shows avatar (hd-pic-user), 'Masuk' button no longer visible.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-002,Login with registered email and wrong password is rejected,Negative,P1,Guest,"1. Open login dialog
+2. Enter valid email + 'WrongPass!123'
+3. Submit","Clear error message is shown near the form, user remains guest (hd-login still visible, no hd-pic-user), no auth cookie set.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-003,Login with unregistered email is rejected,Negative,P1,Guest,"1. Open login dialog
+2. Enter unregistered email + any password
+3. Submit","Clear error message (account not found / invalid credentials), user remains guest.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-004,Malformed email is blocked by client validation,Data Validation,P2,Guest,"1. Open login dialog
+2. For each malformed email: type it, enter password, submit","Inline validation message for each value, no login request sent (assert via page.waitForRequest not fired).",B – hand-written,,
+AUTH-005,Empty email and password cannot be submitted,Boundary,P2,Guest,"1. Open login dialog
+2. Leave email and password empty
+3. Try to submit","Submit button disabled or required-field messages shown, user remains guest.",B – hand-written,,
+AUTH-006,Email with leading/trailing spaces,Data Validation,P3,Logged in,"1. Enter valid email wrapped in spaces + valid password
+2. Submit","Email is trimmed and login succeeds, OR a clear validation message is shown. Never a generic server error.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-007,Email is case-insensitive,Data Validation,P3,Logged in,"1. Enter valid email in uppercase + valid password
+2. Submit","Login succeeds, same account (same username in profile menu).",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-008,Password is masked and show/hide toggle works,Data Validation,P3,Guest,"1. Type password
+2. Toggle show/hide","Input type='password' by default, toggle switches to 'text' and back.",B – hand-written,,
+AUTH-009,Very long email and password,Boundary,P3,Guest,"1. Enter long values
+2. Submit","Validation message or rejection, no page crash, no 5xx in network log.",B – hand-written,,
+AUTH-010,Injection payloads in login fields are rejected safely,Negative,P2,Guest,"1. Enter ""' OR 1=1--"" as email, any password, submit
+2. Enter '<script>alert(1)</script>' as email, submit","Both rejected as invalid, no JS dialog fires, no 5xx response, user remains guest.",B – hand-written,,
+AUTH-011,Repeated failed logins (5×),Exploratory,P3,Guest,"1. Submit wrong password 5 times in a row
+2. Then submit the correct password",Record behaviour: rate-limit/captcha message must be clear. Error text must not reveal whether the email exists. Correct password works after lockout window (if any).,Manual only (may lock the test account),,
+AUTH-012,Login from an article returns user to the same article,State Change,P2,Logged in,"1. Open an article as guest
+2. Click 'Masuk' and log in","User lands back on the same article URL, article title unchanged, avatar visible.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-013,Logout from profile menu,Happy Path,P1,Logged in,"1. Click avatar (hd-pic-user)
+2. Click 'Keluar' (log-out)","Session ends, header shows 'Masuk' (hd-login), avatar gone.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-014,"After logout, Back button does not restore the authenticated view",Authorization,P2,Logged in,"1. Log in, open an article
+2. Log out
+3. Press browser Back and reload","Page shows guest header, like/comment actions prompt login.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-015,Session persists across reload and new tab,State Change,P2,Logged in,"1. Reload homepage
+2. Open kumparan.com in a new tab of the same context","Avatar visible in both tabs, no re-login prompt.",B – hand-written,,
+AUTH-016,Logged-in user opening /login is redirected to homepage,Authorization,P3,Logged in,1. Navigate to https://kumparan.com/login,"Redirected to https://kumparan.com/ with logged-in header, no login form.",B – hand-written,,
+AUTH-017,'Masuk' button becomes clickable after page hydration,Exploratory,P3,Guest,"1. Load homepage
+2. Inspect 'Masuk' button immediately and after load
+3. Click it",Button is enabled once the page is interactive and opens the login dialog on the first click.,B – hand-written,,
+AUTH-018,Network failure during login submit,Error Handling,P2,Guest,"1. Intercept login API and abort
+2. Submit valid credentials","User-friendly error message, form stays filled and usable, no infinite spinner.",B – captcha project (needs a person to tick Cloudflare),,
+AUTH-019,Social login buttons start the provider flow,Happy Path,P3,Guest,"1. Open login dialog
+2. Click Google (repeat for Facebook / Apple if shown)","Popup or redirect goes to the provider host (accounts.google.com, facebook.com, appleid.apple.com). OAuth not completed.",B – hand-written,,
+AUTHZ-001,Guest clicking Like is asked to log in and count is unchanged,Authorization,P1,Guest,"1. Open article as guest
+2. Read like count
+3. Click Like","Login prompt appears, like count unchanged, button not in active state.",B – hand-written,,
+AUTHZ-002,Guest cannot comment without logging in,Authorization,P1,Guest,"1. Open article as guest
+2. Click comment button
+3. Focus comment input / tap send",Login prompt appears or input is disabled with a 'log in to comment' message.,B – hand-written,Fail,BUG-01
+AUTHZ-003,Guest clicking Report is asked to log in,Authorization,P2,Guest,"1. Open article as guest
+2. Scroll to footer and click 'Laporkan' (btn-report)","Login prompt appears, report form is not usable as guest.",B – hand-written,Fail,BUG-02
+AUTHZ-004,Guest opening report URL directly is gated,Authorization,P2,Guest,1. Navigate directly to https://kumparan.com/report/story/<slug>,Login is required before the reason list can be submitted.,B – hand-written,Fail,BUG-02
+AUTHZ-005,Guest can read and share without logging in,Authorization,P1,Guest,"1. Open article as guest
+2. Check title/body
+3. Click copy link","Article fully readable, share works without a login prompt.",B – hand-written,,
+AUTHZ-006,Guest header shows 'Masuk'; 'Buat Tulisan' requires login,Authorization,P2,Guest,"1. Load homepage as guest
+2. Check header
+3. Click 'Buat Tulisan'","Header shows hd-login, no hd-pic-user, 'Buat Tulisan' opens login prompt, not the editor.",B – hand-written,,
+HOME-001,"Homepage loads with header, headline and trending sections",Happy Path,P1,Guest,1. Open https://kumparan.com,"Title 'kumparan.com - Bicara Fakta Lewat Berita', header-section, main-menu (desktop), headline-section and trending-section visible.",C – Playwright Agent,,
+HOME-002,Headline carousel moves forward and back,State Change,P3,Guest,"1. Note first visible headline-card title
+2. Click carousel-right-control
+3. Click carousel-left-control",Visible headline changes after 'next' and returns after 'back'.,C – Playwright Agent,,
+HOME-003,Trending 'load more' appends more stories,State Change,P2,Guest,"1. Count trending-story-item
+2. Click ft-loadmore","Item count increases, no duplicate titles.",C – Playwright Agent,,
+HOME-004,"Every news card shows title, author and date",Data Validation,P2,Guest,"1. Collect all news-item cards in headline-section
+2. Check each card","Each card has non-empty title, author-name and card-footer-date.",C – Playwright Agent,,
+HOME-005,Clicking a card opens the matching article,Happy Path,P1,Guest,"1. Read title of first trending-story-item
+2. Click it","Article opens, story-title equals the card title.",C – Playwright Agent,,
+HOME-006,Logo returns to homepage,Happy Path,P3,Guest,"1. Open any article
+2. Click logo","URL is https://kumparan.com/, homepage sections visible.",C – Playwright Agent,,
+HOME-007,Dark mode toggle applies and persists after reload,State Change,P3,Guest,"1. Click theme toggle (hd-theme)
+2. Reload","Theme switches (background colour changes), choice persists after reload. Reset in teardown.",C – Playwright Agent,,
+HOME-008,Content still renders when ad domains are blocked,Error Handling,P3,Guest,"1. Block ad domains via page.route
+2. Load homepage and an article","Headline, trending and article body render, no blank layout, no uncaught page errors.",C – Playwright Agent,,
+NAV-001,Each main menu channel opens its channel page,Happy Path,P2,Guest,"For each channel:
+1. Click the channel in main-menu
+2. Check URL and page content","URL changes to the channel path, channel page lists stories, HTTP 200.",C – Playwright Agent,,
+NAV-002,'More' menu shows extra categories,Happy Path,P3,Guest,1. Click more-vertical in main-menu,"Popover (more-popover-menu) lists Breaking News, Video Story, Galeri Foto, Kabar Daerah, Polling, Zodiak, each link navigates.",C – Playwright Agent,,
+NAV-003,Core channels are reachable from mobile navigation,Happy Path,P1,Guest,"1. Open homepage on mobile
+2. Open mobile menu / channel tabs
+3. Tap each listed channel","Each channel page opens, no element hidden off-screen.",C – Playwright Agent,,
+NAV-004,Article breadcrumb links to its channel,Happy Path,P3,Guest,"1. Open article
+2. Click channel-name in breadcrumb",Channel page opens matching the breadcrumb text.,C – Playwright Agent,,
+NAV-005,Unknown URL shows a 404 page,Error Handling,P2,Guest,1. Navigate to a non-existent path,"HTTP status 404 (response.status()), friendly not-found page with a link back home. Not a blank page or 500.",C – Playwright Agent,,
+NAV-006,"Broken article ID shows 404, not 500",Error Handling,P2,Guest,1. Navigate to a valid channel with a fake article slug,"404 page, status not 5xx.",C – Playwright Agent,,
+SRCH-001,Search with an existing keyword returns relevant results,Happy Path,P1,Guest,"1. Click search input (input-search)
+2. Type 'IHSG' and press Enter","Results page lists stories, at least one title contains 'IHSG' (case-insensitive).",B – hand-written,,
+SRCH-002,Search with no matching results shows empty state,Negative,P2,Guest,1. Search the random term,"Clear 'no results' message, no error page.",B – hand-written,,
+SRCH-003,Empty search is not submitted,Boundary,P3,Guest,"1. Focus search
+2. Press Enter with empty input","No navigation, or a prompt to type a keyword.",B – hand-written,,
+SRCH-004,Single character and 300-character queries,Boundary,P3,Guest,"1. Search 'a'
+2. Search 300×'a'","Both handled without crash, long query truncated or searched, layout intact.",B – hand-written,,
+SRCH-005,XSS payload in search is rendered as text,Negative,P2,Guest,1. Search the payload,"No JS dialog fires, payload shown as plain text (if echoed).",B – hand-written,,
+SRCH-006,Search is usable on mobile,Happy Path,P1,Guest,"1. Tap search icon
+2. Type keyword and submit","Search input opens without covering results, results load.",B – hand-written,,
+SRCH-007,Search result opens the article,Happy Path,P2,Guest,"1. Search
+2. Click first result","Article opens, title matches the result.",B – hand-written,,
+ART-001,"Article renders title, author, date, reading time and body",Happy Path,P1,Guest,1. Open an article,"story-title, story-author, publish-date, reading-time, story-paragraph and article-main visible, like/comment/share buttons present.",B – hand-written,,
+ART-002,Page title and og:title match the story title,Data Validation,P2,Guest,"1. Open article
+2. Read document.title and meta[property='og:title']","document.title starts with story-title text and ends with '| kumparan.com', og:title present and matches.",B – hand-written,,
+ART-003,Topic tag opens its topic page,Happy Path,P3,Guest,"1. Scroll to story-footer
+2. Click first tag-topic",Topic page opens and lists related stories.,B – hand-written,,
+ART-004,Image zoom opens and closes,State Change,P3,Guest,"1. Click zoom-in-white on the main image
+2. Close the viewer","Enlarged image shown, closing returns to article at same scroll position.",B – hand-written,,
+ART-005,Long article lazy-loads to the end,State Change,P2,Guest,1. Scroll to bottom,"All story-page-N blocks and end_of_article render, story-footer with tags and Report button visible.",B – hand-written,,
+ART-006,Publish date is valid and not in the future,Data Validation,P3,Guest,"1. Read publish-date text
+2. Parse Indonesian date",Date parses correctly and is ≤ current Asia/Jakarta time.,B – hand-written,,
+ART-007,Article usable on a slow 3G connection,Exploratory,P3,Guest,"1. Throttle network
+2. Open article","Title and first paragraph visible within the 30s test timeout, no layout jump hides engagement buttons.",B – hand-written,,
+ART-008,Organisation info opens from the footer,Happy Path,P4,Guest,"1. Scroll to footer
+2. Click btn-organisation-info",Organisation/publisher info is displayed.,B – hand-written,,
+LIKE-001,Logged-in user likes an article,State Change,P1,Logged in,"1. Open article
+2. Read like count N
+3. Click Like","Button switches to active state, count shows N+1.",B – hand-written,,
+LIKE-002,Unlike returns the count to the original value,State Change,P1,Logged in,"1. Like the article
+2. Click Like again","Button returns to inactive, count back to N.",B – hand-written,,
+LIKE-003,Like state persists after reload,State Change,P2,Logged in,"1. Like article
+2. Reload",Still liked with N+1 after reload.,B – hand-written,,
+LIKE-004,Rapid double click does not double count,Boundary,P2,Logged in,"1. Double-click Like quickly
+2. Wait for network idle and reload","Final count is N or N+1 (consistent with button state), never N+2 or negative.",B – hand-written,,
+LIKE-005,Like API failure rolls back the UI,Error Handling,P3,Logged in,"1. Intercept like request with 500
+2. Click Like","Count and state revert or an error message appears, UI does not show a false like.",B – hand-written,,
+LIKE-006,Like count is displayed as a valid number,Data Validation,P3,Guest,1. Read btn-like text,"Text is a non-negative integer or Indonesian short format (e.g. '1,2rb').",B – hand-written,,
+SHR-001,Share to WhatsApp uses the article URL,Happy Path,P1,Guest,"1. Click WhatsApp icon in share-wrapper
+2. Capture popup / navigation URL",URL host is wa.me or api.whatsapp.com and decoded text contains the current article URL. Nothing is sent.,C – Playwright Agent,,
+SHR-002,Copy link puts the article URL on the clipboard,Happy Path,P1,Guest,"1. Click copy icon (copy-circle)
+2. Read clipboard","Clipboard contains the article URL, confirmation toast shown.",C – Playwright Agent,,
+SHR-003,'More' share option lists other platforms,Happy Path,P3,Guest,1. Click more-vertical in share-wrapper,"Additional share targets (e.g. Facebook, X, Telegram, LINE) listed, each link contains the article URL.",C – Playwright Agent,,
+SHR-004,Shared URL contains no session or user data,Data Validation,P2,Logged in,"1. As logged-in user, copy link and open WhatsApp share
+2. Inspect URLs","URLs contain only the article path (+ optional utm params). No token, email or user ID.",C – Playwright Agent,,
+SHR-005,Share works on mobile,Happy Path,P2,Guest,1. Tap share control on mobile article,"Share options (or native share sheet trigger) available, WhatsApp link correct.",C – Playwright Agent,,
+CMT-001,Comment button opens the response page,Happy Path,P1,Guest,"1. Open article
+2. Click comment button (btn-comment)","URL becomes /<channel>/response/<slug>, selected-commented-card shows the article, comment input visible.",B – hand-written,,
+CMT-002,Empty state shown when an article has no comments,Data Validation,P3,Guest,1. Open response page of a fresh article,'Belum ada komentar' message shown.,B – hand-written,,
+CMT-003,Typed comment enables the send button (not submitted),Happy Path,P1,Logged in,"1. Open response page
+2. Type the comment
+3. Assert send button state
+4. Clear the input (do NOT click send)","Text appears in textarea, send button is enabled/visible. No comment posted.",B – hand-written,,
+CMT-004,Empty or whitespace-only comment cannot be sent,Negative,P2,Logged in,"1. Leave textarea empty, inspect send button
+2. Type '   ', inspect send button",Send button disabled (or shows validation) for both. Do not click send.,B – hand-written,,
+CMT-005,"Long, multiline and emoji comments are handled",Boundary,P3,Logged in,1. Type each value (do not send),"Textarea accepts or limits input with a visible counter, layout does not break, emoji rendered correctly.",B – hand-written,,
+CMT-006,"Existing comments show author, time and text",Data Validation,P2,Guest,1. Open response page of an article with comments,"Each comment shows avatar, author name, relative time and non-empty text.",B – hand-written,,
+CMT-007,Back from response page returns to the article,State Change,P3,Guest,"1. Open response page
+2. Press browser Back",Article page shown with the same title.,B – hand-written,,
+RPT-001,Report button opens report page with 6 reasons,Happy Path,P1,Guest,"1. Scroll to story-footer
+2. Click 'Laporkan' (btn-report)","URL /report/story/<slug>, article card shown, 6 reasons: Spam, Komersial, atau Iklan · Memiliki unsur pornografi · Membahayakan atau menjurus tindakan berbahaya · Mengandung konten kekerasan · Menyinggung SARA · Lainnya.",B – hand-written,,
+RPT-002,'Laporkan' is disabled until a reason is selected,Boundary,P1,Guest,"1. Open report page
+2. Inspect submit button",Submit button (btn-report on report page) is disabled.,B – hand-written,,
+RPT-003,Selecting a predefined reason enables 'Laporkan' (not submitted),State Change,P1,Guest,"1. Select 'Spam, Komersial, atau Iklan'
+2. Inspect submit button (do NOT click)",Submit button enabled.,B – hand-written,,
+RPT-004,'Lainnya' requires a written reason,Data Validation,P2,Guest,"1. Select 'Lainnya'
+2. Inspect input and button","Reason input (placeholder 'Tulis alasan anda...') appears, Laporkan disabled while empty.",B – hand-written,,
+RPT-005,Reason input is limited to 80 characters,Boundary,P2,Guest,"1. Select 'Lainnya'
+2. Type 80 chars, then try an 81st","80 chars accepted, 81st ignored, counter shows '80/80'.",B – hand-written,,
+RPT-006,Whitespace-only reason is rejected,Negative,P2,Guest,"1. Select 'Lainnya'
+2. Type 3 spaces
+3. Inspect Laporkan (do NOT click)",Laporkan stays disabled (input should be trimmed).,B – hand-written,Fail,BUG-03
+RPT-007,Switching from 'Lainnya' to another reason updates the form,State Change,P3,Guest,"1. Select 'Lainnya', type a reason
+2. Select reason 0","Reason input hidden or cleared, Laporkan enabled for reason 0.",B – hand-written,,
+RPT-008,'Batal' leaves the report page without submitting,Happy Path,P2,Guest,"1. Select a reason
+2. Click 'Batal'","Returns to the article, no success message.",B – hand-written,,
+RPT-009,"'Laporkan' opens a confirmation, 'Batal' closes it",State Change,P2,Guest,"1. Select reason 0
+2. Click 'Laporkan'
+3. Click 'Batal' in the dialog (never 'Ya')","'Konfirmasi' dialog appears, Batal closes it, still on report page, reason still selected.",B – hand-written,Pass,
+PRF-001,Profile menu lists account actions,Happy Path,P3,Logged in,1. Click avatar (hd-pic-user),"Menu shows username, profile, settings, drafts, kumparanPLUS, log out.",B – hand-written,,
+ERR-001,Going offline shows a clear message and recovers,Error Handling,P3,Guest,"1. Open homepage
+2. Go offline, click a card
+3. Go online, retry","Offline/connection message (or browser error) without broken UI, navigation works after reconnect.",B – hand-written,,
+ERR-002,No uncaught JS errors on key pages,Exploratory,P3,Guest,"1. Visit each page
+2. Collect pageerror events",No uncaught exceptions from kumparan first-party scripts (third-party ad errors listed separately).,B – hand-written,Fail,BUG-04
+MOB-001,Mobile homepage has no horizontal scroll,Data Validation,P1,Guest,"1. Open homepage
+2. Compare document scrollWidth with viewport width","scrollWidth ≤ window.innerWidth, header and first story visible.",B – hand-written,,
+MOB-002,"Like, comment, share and report are reachable on mobile article",Happy Path,P1,Guest,"1. Open article on mobile
+2. Locate each engagement control, tap comment and report","All four controls visible/tappable (not covered by sticky header/ads), comment and report pages open.",B – hand-written,,
+MOB-003,Mobile project receives the mobile layout,Data Validation,P2,Guest,"1. Open homepage with mobile device profile
+2. Check for desktop-only containers","desktop-page-container / desktop-* ad slots are not rendered, mobile layout shown.",B – hand-written,,
+MOB-004,Sticky header does not cover engagement buttons,Exploratory,P3,Guest,"1. Scroll article slowly
+2. Observe header/ads vs buttons",Buttons never sit under the sticky header or an overlay ad when tapped.,B – hand-written,,
+MOB-005,Orientation change keeps the reading position,Exploratory,P4,Guest,"1. Scroll halfway
+2. Change viewport to landscape","Layout reflows, content not lost, no horizontal scroll.",B – hand-written,,
